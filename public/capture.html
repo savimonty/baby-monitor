@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Monty Baby Capture</title>
+    <style>
+    #baby-monitor-publisher-video {
+        width: 95vw    !important;
+        height: 95vw   !important;
+        max-height: 95vh; 
+    }
+    </style>  
+    <script src="./js/peerjs.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="./js/adapter.js"></script>
+    <script>
+
+        function setMessage(msg) {
+            const id = new Date().getTime()+"-message"
+            $("#message").append(`<div id="${id}">${msg}</div>`)
+            setTimeout(() => {
+                $(`#${id}`).remove()
+            }, 5000)
+        }
+
+        function setCallStatus(msg) {
+            const id = new Date().getTime()+"-status"
+            $("#call-status").append(`<div id="${id}">${msg}</div>`)
+            setTimeout(() => {
+                $(`#${id}`).remove()
+            }, 3000)
+        }
+
+        var rec;
+        function detectCrying(stream) {
+            var audioContext = new AudioContext();
+            var mediaStreamSource = audioContext.createMediaStreamSource(stream);
+            rec = new Recorder(mediaStreamSource);
+            rec.record();
+            intervalKey = setInterval(function() {
+                                rec.exportWAV(function(blob) {
+                                    rec.clear();
+                                    ws.send(blob);
+                                });
+                            }, 5000);
+        }
+
+        // start capturing here
+        function requestLocalVideo(element_id, callback) {
+
+            navigator.mediaDevices.enumerateDevices().then(devices => {
+                    var videoDevices = [0,0];
+                    var videoDeviceIndex = 0;
+                    devices.forEach(function(device) {
+                        console.log(device.kind + ": " + device.label +
+                            " id = " + device.deviceId);
+                        if (device.kind == "videoinput") {  
+                            videoDevices[videoDeviceIndex++] =  device.deviceId;    
+                        }
+                    });
+
+                    constraints =  {
+                        width: { min: 1024, ideal: 1280, max: 1920 },
+                        height: { min: 776, ideal: 720, max: 1080 },
+                        deviceId: { exact: videoDevices[1]  } 
+                    };
+
+                    var video = document.getElementById(element_id);
+                    navigator.mediaDevices
+                                    .getUserMedia({ video:constraints, audio:true })
+                                    .then(stream => {
+                                        video.srcObject = stream
+                                        console.log("Publishing ...")
+                                        setMessage("Publishing ... ")
+                                        callback(stream)
+                                        detectCrying(stream)
+                                    })
+                                    .catch(msg => console.log(msg));
+                });
+            
+        } 
+
+        function publishStream(localStream) {
+            const peer = new Peer('baby-monitor', {
+                                host: '/',
+                                port: 8443,
+                                path: '/peerjs/bm',
+                                config: {'iceServers': [
+                                    {
+                                        url: 'turns:www.saviomonteiro.com:3478',
+                                        username: 'turn',
+                                        credential: 'passwd'
+                                    },
+                                    { 
+                                        url: 'stun:stun.l.google.com:19302'
+                                    }
+                                ]}
+                            }); 
+
+            peer.on('open', function(id) {
+                console.log('My ID is: ' + id);
+            }); 
+
+            peer.on('call', function(call) {
+                console.log("Call Received from ", call);
+                setCallStatus("Call Received from: " + call)
+                
+                console.log("Answering with localStream ", localStream)
+                setCallStatus("Answering Call: " + call)
+
+                call.answer(localStream);
+            }); 
+
+            peer.on('error', function(err){
+                console.error(err);
+            });
+        }
+
+        function stop() {
+            location.href="/logout"
+        }
+
+        $(document).ready(function() {
+            requestLocalVideo('baby-monitor-publisher-video', publishStream)
+        });
+    </script>
+</head>
+<body>
+    <% if(user) {
+        if(user.email) 
+        {%>
+            <img width="50" src="<%= user.picture %>" />
+            <%= user.email %> <button onclick="stop()">STOP CAPTURE AND LOGOUT</button>
+            <br />
+            <div id="message"></div>
+            <div id="call-status"></div>
+            <video id="baby-monitor-publisher-video" muted="true" autoplay="autoplay"></video>
+        <%}
+        else {
+        }
+    } %>
+</body>
+</html>

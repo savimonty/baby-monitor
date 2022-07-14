@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Web site created using create-react-app"
+    />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <title>Monty Baby Monitor Home</title>
+  </head>
+  <body>
+    <% if(user) {
+          if(user.email) {
+            %>
+            <img width="50" src="<%= user.picture %>" /><br />
+            <%= user.email %> <a href="/logout">LOGOUT</a>
+            <br /><br />
+            <% access.forEach(view => { %>
+              <% if(view == "capturer") { %>
+                <br /><a href="/capture">CAPTURER</a><br />
+              <% } %>
+              <% if(view == "viewer") { %>
+                <br /><a href="/bm">VIEWER</a><br />
+              <% } %>
+            <%}) %>
+          <%}
+          else {
+          }
+    } %>
+  </body>
+</html>

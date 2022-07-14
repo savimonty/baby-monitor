@@ -1,0 +1,35 @@
+version: "3"
+services:
+  baby-monitor-server:
+    build:
+      context: .
+    container_name: baby-monitor-server
+    image: savimonty/baby-monitor-server
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - ./certs:/certs:ro
+      - ./logs:/app/logs
+      - ./users.json:/app/users.json
+      - ./.env.${ENV}:/app/.env.${ENV}
+    env_file:
+      - ./.env.${ENV}
+    restart: always
+
+  baby-monitor-coturn:
+    build:
+      context: ./coturn/
+      dockerfile: Dockerfile
+      network: host
+    image: savimonty/baby-monitor-coturn
+    container_name: baby-monitor-coturn
+    volumes:
+      - ./coturn/data:/srv
+      - ./coturn/data/logs:/app/logs
+      - ./certs:/certs:ro
+    ports:
+      - "3478:3478"
+    env_file:
+      - ./coturn/config.env
+    restart: always
