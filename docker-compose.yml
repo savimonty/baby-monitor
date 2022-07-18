@@ -29,7 +29,7 @@ services:
       - ./coturn/data/logs:/app/logs
       - ./certs:/certs:ro
     ports:
-      - "3478:3478"
+      - "3478:3478/tcp"
     env_file:
       - ./coturn/config.env
     restart: always
