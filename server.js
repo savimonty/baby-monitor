@@ -93,23 +93,6 @@ app.all("*", (req, res, next) => {
       log.warn(`(${req.method}) ${req.originalUrl} - NON-SSL - Redirecting to HTTPS`)
       return res.redirect(`https://${req.hostname}:${httpsPort}${req.url}`);
     };
-
-    // if (req.path.indexOf("index") > -1) {
-    //   return res.sendStatus(404);
-    // }
-
-    // if (req.path.indexOf("home") > -1) {
-    //   return res.sendStatus(404);
-    // }
-
-    // if (req.path.indexOf("capture") > -1) {
-    //   return res.sendStatus(404);
-    // }
-
-    // if (req.path.indexOf("bm") > -1) {
-    //   return res.sendStatus(404);
-    // }
-
     next();
 })
 
@@ -122,36 +105,8 @@ const loadAccess = () => {
   return access
 }
 var access = loadAccess()
-
-const config = {
-  authRequired: false,
-  attemptSilentLogin: true,
-  auth0Logout: true,
-  secret: makeid(64),
-  clientSecret: auth0ClientSecret,
-  baseURL: 'https://www.saviomonteiro.com:8443',
-  clientID: auth0ClientId,
-  issuerBaseURL: 'https://saviomonteiro.us.auth0.com',
-  authorizationParams: {
-    response_type: 'code id_token',
-    audience: 'https://www.saviomonteiro.com:8443/v1/api',
-    scope: 'openid profile email',
-  },
-  routes: {
-    login: false,
-    logout: false,
-    postLogoutRedirect: '/logout',
-  },
-};
-
 app.use(express.static('build'));
-/*
-app.use(auth(config));
-app.use( (req, res, next) => {
-  res.locals.user = req.oidc.user;
-  next();
-});
-*/
+
 
 // REST END POINTS
 
@@ -171,13 +126,7 @@ app.get('/authorization', (req, res) => {
 })
 
 app.get("/token", (req, res) => {
-
-
   const ACCESS_TOKEN = req.query.access_token;
-
-  // TODO: start an express session
-  // add items to session
-
   const COGNITO_TOKEN_URL=`https://${COGNITO_APP_DOMAIN}/oauth2/userInfo`
   fetch(COGNITO_TOKEN_URL, {
     method: 'GET',
