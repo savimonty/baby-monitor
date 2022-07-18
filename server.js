@@ -10,11 +10,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session')
 const basicAuth = require('express-basic-auth'); 
 const { ExpressPeerServer } = require('peer');
-
 const morgan = require("morgan");
-
-// const { auth } = require('express-openid-connect');
-// const { requiresAuth } = require('express-openid-connect');
 
 const toDateStr = (dt) => dt.toISOString().split("T")[0];
 const toTimeStr = (dt) => dt.toISOString().split("T")[0].split("Z")[0];
@@ -25,7 +21,6 @@ const auth0ClientSecret = process.env.AUTH0_CLIENT_SECRET
 const httpPort = process.env.BM_HTTP_PORT
 const httpsPort = process.env.BM_HTTPS_PORT
 
-const usersJson = require("./users.json");
 const exp = require('constants');
 const { json } = require('express');
 const { send } = require('process');
@@ -34,6 +29,7 @@ const privateKey  = fs.readFileSync(process.env.BM_SSL_PRIVATE_KEY, 'utf8');
 const certificate = fs.readFileSync(process.env.BM_SSL_CERT, 'utf8');
 
 const logsPath = `${process.env.BM_LOGS_PATH}/bm-${toDateStr(new Date())}.log`
+
 // create a rolling file logger based on date/time that fires process events
 const SimpleNodeLogger = require('simple-node-logger'),
 	opts = {
@@ -54,7 +50,6 @@ const makeid = (length) => {
  }
  return result;
 }
-
 
 log.info("=================================================================");
 
@@ -213,7 +208,7 @@ app.get('/logout', (req, res) => {
 
 
 
-// SERVER CONFIGURATION
+// SERVER CONFIGURATION INCLUDING PEERJS SERVER
 const httpServer = http.createServer(app);
 httpServer.on("error", (error) => {
   log.error(`Unable to listen on port ${httpPort} ${error}`);
