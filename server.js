@@ -116,6 +116,16 @@ app.get('/login', (req, res) => {
   res.redirect(COGNITO_AUTHORIZE_URL)
 })
 
+
+app.get('/logout', (req, res) => {
+  
+  req.session.destroy();
+
+  const COGNITO_LOGOUT_REDIRECT_URL=encodeURIComponent(`https://${req.hostname}:${httpsPort}/login`)
+  const COGNITO_LOGOUT_URL=`https://${COGNITO_APP_DOMAIN}/logout?client_id=${COGNITO_CLIENT_ID}&logout_uri=${COGNITO_LOGOUT_REDIRECT_URL}`
+  res.redirect(COGNITO_LOGOUT_URL)
+})
+
 app.get('/authorization', (req, res) => {  
   return res.render(__dirname + '/build/blippitybop.html', {redirUri: `https://${req.hostname}:${httpsPort}/token`});
 })
@@ -154,9 +164,15 @@ const requiresSession = (req, res, next) => {
     next()
   }
   else {
-    return res.send("NO SESSION!!<br /><a href='/logout'>LOGOUT</a>");
+    return res.redirect('/logout');
   }
 }
+
+app.get("/turncreds", requiresSession, (req, res) => {
+  const TURN_USER=process.env.TURN_USER
+  const TURN_PASS=process.env.TURN_PASS
+  return res.send({"u": TURN_USER, "p": TURN_PASS})
+});
 
 app.get("/home", requiresSession, (req, res) => {
   user = req.session.user
@@ -195,14 +211,6 @@ app.get("/bm", requiresSession, (req, res) => {
   }
 });
 
-app.get('/logout', (req, res) => {
-  
-  req.session.destroy();
-
-  const COGNITO_LOGOUT_REDIRECT_URL=encodeURIComponent(`https://${req.hostname}:${httpsPort}/login`)
-  const COGNITO_LOGOUT_URL=`https://${COGNITO_APP_DOMAIN}/logout?client_id=${COGNITO_CLIENT_ID}&logout_uri=${COGNITO_LOGOUT_REDIRECT_URL}`
-  res.redirect(COGNITO_LOGOUT_URL)
-})
 
 
 
